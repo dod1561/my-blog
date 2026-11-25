@@ -1,7 +1,6 @@
 // 진입점: 해시 라우팅과 화면 렌더링
 
 import { getPostList, getPost, formatDate, NotFoundError } from './posts.js';
-import { initTheme } from './theme.js';
 
 const SITE_TITLE = '나의 블로그';
 const SITE_INTRO = '배우고 만든 것들을 기록합니다.';
@@ -67,36 +66,26 @@ async function router() {
 
 async function homeView() {
   const posts = await getPostList();
-  const node = el('div');
+  const node = el('div', { class: 'page' });
 
-  const intro = el('section', { class: 'intro' });
-  intro.append(
-    el('h1', { class: 'intro__title' }, SITE_TITLE),
-    el('p', { class: 'intro__text' }, SITE_INTRO),
-  );
-  node.append(intro);
-  node.append(posts.length ? postList(posts) : message('아직 글이 없어요', 'posts 폴더에 첫 글을 추가해 보세요.'));
+  node.append(hero('ls -t posts/', SITE_TITLE, SITE_INTRO));
+  node.append(posts.length ? postGrid(posts) : message('아직 글이 없어요', 'posts 폴더에 첫 글을 추가해 보세요.'));
   return { node, title: '' };
 }
 
 async function tagView(tag) {
   const posts = (await getPostList()).filter((p) => (p.tags || []).includes(tag));
-  const node = el('div');
+  const node = el('div', { class: 'page' });
 
-  const intro = el('section', { class: 'intro' });
-  intro.append(
-    el('h1', { class: 'intro__title' }, `#${tag}`),
-    el('p', { class: 'intro__text' }, `${posts.length}개의 글`),
-  );
-  node.append(intro);
-  node.append(posts.length ? postList(posts) : message('이 태그의 글이 없어요', ''));
-  node.append(backLink('모든 글 보기'));
+  node.append(hero(`grep -l "#${tag}" posts/`, `#${tag}`, `${posts.length}개의 글`));
+  node.append(posts.length ? postGrid(posts) : message('이 태그의 글이 없어요', ''));
+  node.append(backLink('← 모든 글 보기', 'message__action'));
   return { node, title: `#${tag}` };
 }
 
 async function postView(slug) {
   const post = await getPost(slug);
-  const article = el('article');
+  const article = el('article', { class: 'post' });
 
   const header = el('header', { class: 'post-header' });
   header.append(el('h1', { class: 'post-header__title' }, post.title));
@@ -144,21 +133,53 @@ function errorView(err) {
 // 구성 요소
 // ---------------------------------------------------------------------------
 
-function postList(posts) {
-  const list = el('ul', { class: 'post-list' });
+function hero(command, title, text) {
+  const section = el('section', { class: 'hero' });
+  section.append(
+    el('p', { class: 'hero__command', 'aria-hidden': 'true' }, command),
+    el('h1', { class: 'intro__title' }, title),
+    el('p', { class: 'intro__text' }, text),
+  );
+  return section;
+}
+
+function postGrid(posts) {
+  const list = el('ul', { class: 'post-grid' });
   for (const post of posts) {
-    const item = el('li', { class: 'post-item' });
+    const item = el('li');
+    const card = el('article', { class: 'post-card' });
     if (post.date) {
-      item.append(el('time', { class: 'post-item__date', datetime: post.date }, formatDate(post.date)));
+      card.append(el('time', { class: 'post-card__date', datetime: post.date }, formatDate(post.date)));
     }
-    const title = el('h2', { class: 'post-item__title' });
-    title.append(el('a', { class: 'post-item__link', href: `#/post/${encodeURIComponent(post.slug)}` }, post.title));
-    item.append(title);
-    if (post.description) item.append(el('p', { class: 'post-item__desc' }, post.description));
-    if (post.tags?.length) item.append(tagList(post.tags));
+    const title = el('h2', { class: 'post-card__title' });
+    title.append(el('a', { class: 'post-card__link', href: `#/post/${encodeURIComponent(post.slug)}` }, post.title));
+    card.append(title);
+    if (post.description) card.append(el('p', { class: 'post-card__desc' }, post.description));
+    if (post.tags?.length) card.append(tagList(post.tags));
+    item.append(card);
     list.append(item);
   }
   return list;
+}
+
+/** 사이드바에 전체 태그와 글 수를 표시한다. */
+function renderSidebarTags(posts) {
+  const container = document.querySelector('.sidebar__tags');
+  if (!container) return;
+
+  const counts = new Map();
+  for (const post of posts) {
+    for (const tag of post.tags || []) counts.set(tag, (counts.get(tag) || 0) + 1);
+  }
+
+  const sorted = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ko'));
+  container.replaceChildren(...sorted.map(([tag, count]) => {
+    const li = el('li');
+    const link = el('a', { class: 'tag', href: `#/tag/${encodeURIComponent(tag)}` }, `#${tag}`);
+    link.append(el('span', { class: 'sidebar__tag-count' }, String(count)));
+    li.append(link);
+    return li;
+  }));
 }
 
 function tagList(tags) {
@@ -235,6 +256,6 @@ main.addEventListener('click', (event) => {
 const year = document.querySelector('.site-footer__year');
 if (year) year.textContent = new Date().getFullYear();
 
-initTheme(document.querySelector('.theme-toggle'));
+getPostList().then(renderSidebarTags).catch(() => { /* 목록 오류는 본문에서 안내한다 */ });
 window.addEventListener('hashchange', router);
 router();

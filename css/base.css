@@ -1,72 +1,47 @@
-/* ===== 디자인 토큰 (라이트 테마 기본값) ===== */
+/* ===== 디자인 토큰: 검은 배경 + 네온 ===== */
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
-  --bg: #fdfdfc;
-  --surface: #f4f4f1;
-  --text: #1f2328;
-  --text-muted: #5c636d;
-  --border: #e3e3de;
-  --accent: #2560c4;
-  --accent-hover: #1a4a9c;
-  --code-bg: #f2f2ee;
-  --code-text: #24292f;
-  --quote-border: #cfcfc8;
-  --tag-bg: #ecf1fa;
-  --tag-text: #234e93;
-  --green: #1f7a3d;
-  --header-bg: rgba(253, 253, 252, 0.85);
+  /* 배경 */
+  --bg: #000000;
+  --surface: #07070c;
+  --surface-2: #0e0e17;
+  --border: #1d2232;
+  --border-strong: #2c3348;
+
+  /* 네온 색 */
+  --neon-cyan: #00f0ff;
+  --neon-pink: #ff2bd6;
+  --neon-green: #39ff14;
+  --neon-yellow: #f3ff3d;
+
+  /* 글자: 긴 본문은 눈이 피로하지 않게 옅은 네온 민트, 강조는 선명한 네온 */
+  --text: #d4fff6;
+  --text-muted: #8fb0c4;
+  --heading: var(--neon-cyan);
+  --link: var(--neon-pink);
+  --link-hover: #ff7ae6;
+  --green: var(--neon-green);
+
+  --code-bg: #05050a;
+  --code-text: #b8ffe9;
+  --tag-text: var(--neon-cyan);
+
+  /* 빛 번짐 효과 */
+  --glow-cyan: 0 0 4px rgba(0, 240, 255, 0.6), 0 0 16px rgba(0, 240, 255, 0.35);
+  --glow-pink: 0 0 4px rgba(255, 43, 214, 0.6), 0 0 16px rgba(255, 43, 214, 0.35);
+  --glow-green: 0 0 4px rgba(57, 255, 20, 0.5), 0 0 14px rgba(57, 255, 20, 0.3);
+  --box-glow: 0 0 0 1px var(--neon-cyan), 0 0 18px rgba(0, 240, 255, 0.25);
 
   --font-sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard",
     "Noto Sans KR", "Malgun Gothic", "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "D2Coding", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-mono: ui-monospace, SFMono-Regular, "D2Coding", "JetBrains Mono", Menlo, Consolas,
+    "Malgun Gothic", monospace;
 
-  --content-width: 42rem;
+  --sidebar-width: 260px;
   --gutter: 16px;
-  --radius: 8px;
-  --header-height: 60px;
-}
-
-/* ===== 다크 테마: 시스템 설정 (사용자가 라이트를 고르지 않은 경우) ===== */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-
-    --bg: #16181d;
-    --surface: #1e2128;
-    --text: #e3e5e8;
-    --text-muted: #9ca3ad;
-    --border: #2e333c;
-    --accent: #7ba6f7;
-    --accent-hover: #a3c1fa;
-    --code-bg: #1f232b;
-    --code-text: #e3e5e8;
-    --quote-border: #3d434e;
-    --tag-bg: #232b3a;
-    --tag-text: #a9c3f5;
-    --green: #5cc87f;
-    --header-bg: rgba(22, 24, 29, 0.85);
-  }
-}
-
-/* ===== 다크 테마: 사용자가 직접 선택한 경우 ===== */
-:root[data-theme="dark"] {
-  color-scheme: dark;
-
-  --bg: #16181d;
-  --surface: #1e2128;
-  --text: #e3e5e8;
-  --text-muted: #9ca3ad;
-  --border: #2e333c;
-  --accent: #7ba6f7;
-  --accent-hover: #a3c1fa;
-  --code-bg: #1f232b;
-  --code-text: #e3e5e8;
-  --quote-border: #3d434e;
-  --tag-bg: #232b3a;
-  --tag-text: #a9c3f5;
-  --green: #5cc87f;
-  --header-bg: rgba(22, 24, 29, 0.85);
+  --radius: 6px;
+  --topbar-height: 60px;
 }
 
 /* ===== 리셋 ===== */
@@ -79,13 +54,12 @@
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  background-color: var(--bg);
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
   background-color: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
@@ -94,7 +68,6 @@ body {
   word-break: keep-all;
   overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
-  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 h1, h2, h3, h4, h5, h6, p, ul, ol, figure, blockquote, pre {
@@ -117,24 +90,25 @@ button {
 }
 
 a {
-  color: var(--accent);
+  color: var(--link);
   text-decoration-thickness: 1px;
   text-underline-offset: 0.2em;
 }
 
 a:hover {
-  color: var(--accent-hover);
+  color: var(--link-hover);
+  text-shadow: var(--glow-pink);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--neon-yellow);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
 ::selection {
-  background: var(--tag-bg);
-  color: var(--text);
+  background: var(--neon-pink);
+  color: #000;
 }
 
 /* 화면에는 숨기고 스크린 리더에는 읽히는 요소 */
